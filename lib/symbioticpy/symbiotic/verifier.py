@@ -8,6 +8,8 @@ from . utils.process import runcmd, ProcessRunner
 from . utils.watch import ProcessWatch, DbgWatch
 from . utils.utils import print_stderr, print_stdout
 from . exceptions import SymbioticException, SymbioticExceptionalResult
+from . transform import *
+
 
 def initialize_verifier(opts):
     from . targets import targets
@@ -97,14 +99,40 @@ class SymbioticVerifier(object):
                              color='RED', print_nl=False)
         return res
 
+
     def _run_verifier(self, tool, addparams, timeout):
         params = self.override_params or self.options.tool_params
         if addparams:
             params = params + addparams
+
+        # get crash variables 
+
+        # slice the file to be verified using crash variables.
+        #print_stdout("This is the ulimate %s", str(params))
+        #self.get_cv_from_klee(str(params))
         prp = self.options.property.getPrpFile()
+        print_stdout("This is the progress")
+        
+        #self.get_cv_from_klee(str(params))
+        print_stdout("This is ultimate ::: %s" , str(params))
+        #self.getSlicingInfo(str(os.path.dirname(os.path.abspath(params))))
+        #s = SymbioticVerifier()
+        #s.get_cv_from_klee(str(params))
         return self._run_tool(tool, prp, params, timeout)
+    
+    #def perform_slicing():
+        
+    #    cmd = ['timeout','300','sbt-slicer', '-c',  ]
+    #    process = ProcessRunner()
+    #    returncode = process.run(cmd, watch)
 
     def run_verification(self):
+        print_stdout('INFO: Starting Extracting Crash Variable Information ...', color='WHITE')
+        
+        # run the sbt slicer command here to get the sliced bit code that gives us the path variables. 
+        print_stdout('INFO: ' + str(self._tool.verifiers()), color='WHITE')
+        print_stdout('INFO: Done Extracting Error Information ...', color='WHITE')
+        
         print_stdout('INFO: Starting verification', color='WHITE')
         restart_counting_time()
         orig_bitcode = self.curfile

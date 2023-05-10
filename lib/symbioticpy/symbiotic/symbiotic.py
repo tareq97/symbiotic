@@ -4,13 +4,13 @@ import os
 import sys
 import re
 
-from . transform import SymbioticCC
+from . transform import SymbioticCC,PrintWatch
 from . verifier import SymbioticVerifier
 from . options import SymbioticOptions
 from . utils import err, dbg, print_elapsed_time, restart_counting_time
 from . utils.utils import print_stdout
-from . utils.process import ProcessRunner
-from . exceptions import SymbioticExceptionalResult
+from . utils.process import ProcessRunner,runcmd
+from . exceptions import SymbioticExceptionalResult,SymbioticException
 
 class Symbiotic(object):
     """
@@ -59,11 +59,104 @@ class Symbiotic(object):
 
             print('Killed the child process')
 
+    #def line_no(self,strs):
+    #    lineNoArr = []
+    #    print(strs)
+    #    if strs.__contains__("Line:"):
+    #        lineNoArr = strs.split(":")
+    #    return lineNoArr[1].strip()
+    
+    #def info(strs):
+    #    if strs.__contains__("address:"):
+    #        addressArr = strs.split(":")
+    #        address = addressArr[1].split(":")
+    #    return address[1].strip()
+    
+    #def pointing_to(strs):
+    #    if strs.__contains__("pointing"):
+    #        sizeArr = strs.split(":")
+    #        sizeArr = sizeArr[-1].strip()
+    #    return sizeArr            
+
+
+    #def get_cv_from_klee(self,cv):
+    #    print_stdout("This is the ulimate method that %s", cv)
+        
+    #    klee_test_0_path = cv.split("=")
+    #    print_stdout("This is the ulimate method that %s", str(klee_test_0_path))
+    #    klee_test_0_path_name = klee_test_0_path[1]
+    #    klee_test_0_path_name = klee_test_0_path_name[:-1]
+    #    klee_testcase_filename = os.path.basename(klee_test_0_path_name)
+    #    klee_testcase_filename_list = klee_testcase_filename.split('.')
+    #    klee_test_case_mention = klee_testcase_filename_list[0]
+    #    klee_dir_name = os.path.dirname(klee_test_0_path_name)
+
+    #    f = open(klee_dir_name + "/" + klee_test_case_mention + ".ptr.err", "r")
+        #print("Is this printed anywhere ::: %s", str(f.read())) 
+
+    #    lines = f.readlines()
+        # extract address and size information
+        
+        # extract line no
+        # extract information cv
+
+    #    for line in lines:
+    #        self.line_no(line)
+    #        self.info(line) 
+    #        self.pointing_to(line)  
+
+    #        if line.__contains__("Crash Variables:"):
+    #            while(line != ''):
+    #                print(line)
+        
+    def getSlicingInfo(self,paths):
+        slicing_criteria = ""
+        print_stdout("INFO ::Start from crash text file.",color='RED')
+        print_stdout(str(paths), color='RED')
+        paths = str(paths) + "/" + "crash.txt"
+        if os.path.isfile(paths):
+            print_stdout("INFO :: This is info from crash text file.",color='RED')
+            f = open(str(paths), "r")
+            s = f.readline()
+            s = s.split(",")
+            s = [x for x in s if x != '']
+            print_stdout("NIFO :: This is info from crash text file. %s", str(s),color='RED')
+            for q in s[1:]:
+                print("First")
+                if q == s[-1]:
+                    slicing_criteria = slicing_criteria + s[0] + ":" + q
+                    print(slicing_criteria)    
+                    print(len(s))
+                else:
+                    slicing_criteria = s[0] + ":" + q + ","
+            print_stdout("This is slicing criteria :: %s", str(slicing_criteria),color='RED')
+
+            f.close()
+
+        print_stdout(slicing_criteria, color='RED')
+        return slicing_criteria
+
     def replay_nonsliced(self, tool, cc):
         bitcode = cc.prepare_unsliced_file()
         params = []
         if hasattr(tool, "replay_error_params"):
             params = tool.replay_error_params(cc.curfile)
+            klee_file_name = params[0].split("=")
+            slicer_params = self.getSlicingInfo(os.path.dirname(os.path.dirname(klee_file_name[1])))
+
+            ## add slicer again here and change the sliced file name to final_slice.bc
+            #SymbioticCC.slicer(self,add_params=['-c',slicer_params])
+            print_stdout("Tis is cur file :::::: %s", str(cc.curfile),color='RED')
+            cmd = ['timeout', '300', 'sbt-slicer','-c', slicer_params,cc.curfile] 
+            try:
+                runcmd(cmd, PrintWatch('INFO: ' + str(cmd)), 'Ran slicer againer for final time')
+            except SymbioticException:
+            # not fatal, continue working
+                dbg('Failed running slicer in replay')
+            
+
+
+        #self.get_cv_from_klee(str(params))
 
         print_stdout('INFO: Replaying error path', color='WHITE')
         restart_counting_time()

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ns0:graphml xmlns:ns0="http://graphml.graphdrawing.org/xmlns">
+<ns0:graph edgedefault="directed">
+<ns0:node id="0">
+  <ns0:data key="entry">true</ns0:data>
+</ns0:node>
+<ns0:node id="1">
+  <ns0:data key="violation">true</ns0:data>
+</ns0:node>
+<ns0:edge source="0" target="1" />
+<data key="witness-type">violation_witness</data><data key="sourcecodelang">C</data><data key="producer">Symbiotic</data><data key="specification">CHECK( init(main()), LTL(G valid-free) )</data><data key="specification">CHECK( init(main()), LTL(G valid-deref) )</data><data key="specification">CHECK( init(main()), LTL(G valid-memtrack) )</data><data key="programfile">/opt/symbiotic/tests/simple1.c</data><data key="programhash">8394942dd442ca7f5abbe0f2109396d8e773575a9d3b728290ee4eba71d160e0</data><data key="architecture">64bit</data><data key="creationtime">2023-05-10T07:34:31Z</data></ns0:graph>
+<key id="witness-type" for="graph" attr.type="string" attr.name="witness-type" /><key id="specification" for="graph" attr.type="string" attr.name="specification" /><key id="programfile" for="graph" attr.type="string" attr.name="programfile" /><key id="sourcecodelang" for="graph" attr.type="string" attr.name="sourcecodelang" /><key id="producer" for="graph" attr.type="string" attr.name="producer" /><key id="creationtime" for="graph" attr.type="string" attr.name="creationtime" /><key id="architecture" for="graph" attr.type="string" attr.name="architecture" /><key id="programhash" for="graph" attr.type="string" attr.name="programhash" /><key id="entry" for="node" attr.type="string" attr.name="entry" /><key id="violation" for="node" attr.type="string" attr.name="violation" /><key id="assumption" for="edge" attr.type="string" attr.name="assumption" /><key id="assumption.resultfunction" for="edge" attr.type="string" attr.name="assumption.resultfunction" /><key id="startline" for="edge" attr.type="string" attr.name="startline" /><key id="cyclehead" for="node" attr.type="boolean" attr.name="cyclehead"><default>false</default></key><key id="enterLoopHead" for="edge" attr.type="boolean" attr.name="enterLoopHead"><default>false</default></key></ns0:graphml>

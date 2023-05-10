@@ -203,7 +203,7 @@ class SymbioticCC(object):
         """
 
         # __inline attribute is buggy in clang, remove it using -D__inline
-        cmd = self._get_cc() + ['-c', '-emit-llvm',
+        cmd = self._get_cc() + ['-c', '-emit-llvm', '-fno-discard-value-names',
                                 #'-include', 'symbiotic.h',
                                 '-D__inline='] + opts
 
@@ -624,6 +624,30 @@ class SymbioticCC(object):
         self.link(llvmsrc, output)
 
     def perform_slicing(self):
+        self._get_stats('Before slicing ')
+
+        add_params = []
+        if hasattr(self._tool, 'slicing_params'):
+            add_params += self._tool.slicing_params()
+
+        print_stdout('INFO: Starting slicing', color='WHITE')
+        restart_counting_time()
+        for n in range(0, self.options.repeat_slicing):
+            dbg('Slicing the code for the {0}. time'.format(n + 1))
+            # if n == 0 and self.options.repeat_slicing > 1:
+            #    add_params = ['-pta-field-sensitive=8']
+
+            self.slicer(add_params)
+
+            if self.options.repeat_slicing > 1:
+                opt = get_optlist_after(self.options.optlevel)
+                self.optimize(opt + ['-remove-infinite-loops'], load_sbt=True)
+
+        print_elapsed_time('INFO: Total slicing time', color='WHITE')
+
+        self._get_stats('After slicing ')
+    
+    def perform_slicing_replay_error(self):
         self._get_stats('Before slicing ')
 
         add_params = []

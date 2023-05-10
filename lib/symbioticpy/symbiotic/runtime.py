@@ -109,6 +109,8 @@ class SetupSymbiotic:
 
     def setup(self):
         self.environment = Environment(get_symbiotic_dir())
+
+        dbg('This is printed')
         dbg('Symbiotic dir: {0}'.format(self.environment.symbiotic_dir))
 
         # setup the property (must be done before initializing the verifier)
@@ -143,6 +145,6 @@ class SetupSymbiotic:
     def cleanup(self):
         os.chdir(self.environment.symbiotic_dir)
         assert self.environment.symbiotic_dir != self.environment.working_dir
-        if not self.opts.save_files:
-            rm_tmp_dir(self.environment.working_dir)
+        #if not self.opts.save_files:
+            #rm_tmp_dir(self.environment.working_dir)
 
