@@ -12,7 +12,8 @@ RUN echo "$TZ" > /etc/timezone
 
 # Install packages
 RUN apt-get update
-RUN apt-get install -y git cmake make llvm zlib1g-dev clang g++ python3 python curl wget rsync make cmake unzip gcc-multilib xz-utils libz3-dev libsqlite3-dev
+RUN apt-get install -y git cmake make llvm zlib1g-dev clang g++ python3 python python3-pip curl wget rsync make cmake unzip gcc-multilib xz-utils libz3-dev libsqlite3-dev
+RUN pip install pandas
 
 WORKDIR /opt
 RUN git clone https://github.com/staticafi/symbiotic

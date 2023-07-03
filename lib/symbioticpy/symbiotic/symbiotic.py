@@ -3,6 +3,7 @@
 import os
 import sys
 import re
+import glob
 
 from . transform import SymbioticCC,PrintWatch
 from . verifier import SymbioticVerifier
@@ -11,6 +12,10 @@ from . utils import err, dbg, print_elapsed_time, restart_counting_time
 from . utils.utils import print_stdout
 from . utils.process import ProcessRunner,runcmd
 from . exceptions import SymbioticExceptionalResult,SymbioticException
+import shutil
+from pathlib import Path
+
+import csv
 
 class Symbiotic(object):
     """
@@ -121,49 +126,81 @@ class Symbiotic(object):
             s = s.split(",")
             s = [x for x in s if x != '']
             print_stdout("NIFO :: This is info from crash text file. %s", str(s),color='RED')
-            for q in s[1:]:
+            for q in s[1:-1]:
                 print("First")
-                if q == s[-1]:
+                print(q)
+                if q == s[-2]:
                     slicing_criteria = slicing_criteria + s[0] + ":" + q
                     print(slicing_criteria)    
                     print(len(s))
                 else:
-                    slicing_criteria = s[0] + ":" + q + ","
+                    slicing_criteria = slicing_criteria + s[0] + ":" + q + ","
+                    print(slicing_criteria)
             print_stdout("This is slicing criteria :: %s", str(slicing_criteria),color='RED')
 
             f.close()
 
         print_stdout(slicing_criteria, color='RED')
         return slicing_criteria
+    
+    def generateCFC(self,str):
+        #read crash.txt and malloc_info and create a cfc.txt file
+        f = open(str+'/crash.txt')
+        csv_f = csv.reader(f)
+        for row in csv_f:
+            print("**********************CRASH INFO************************")
+            print(row)
+            print("**********************END CRASH INFO************************")
+        f1 = open(str+'/malloc_info.txt')
+        csv_f1 = csv.reader(f1)
+        for row in csv_f1:
+            print("**********************CRASH INFO************************")
+            print(row)
+            print("**********************END CRASH INFO************************")
+        
+        f = open(str+'/cfc.txt')
+
+
 
     def replay_nonsliced(self, tool, cc):
         bitcode = cc.prepare_unsliced_file()
+        
         params = []
         if hasattr(tool, "replay_error_params"):
             params = tool.replay_error_params(cc.curfile)
             klee_file_name = params[0].split("=")
             slicer_params = self.getSlicingInfo(os.path.dirname(os.path.dirname(klee_file_name[1])))
-
+            self.generateCFC(os.path.dirname(os.path.dirname(klee_file_name[1])))
             ## add slicer again here and change the sliced file name to final_slice.bc
             #SymbioticCC.slicer(self,add_params=['-c',slicer_params])
             print_stdout("Tis is cur file :::::: %s", str(cc.curfile),color='RED')
             cmd = ['timeout', '300', 'sbt-slicer','-c', slicer_params,cc.curfile] 
+
             try:
                 runcmd(cmd, PrintWatch('INFO: ' + str(cmd)), 'Ran slicer againer for final time')
+                print_stdout("***************START******************",color='RED')
+                print_stdout(str(cmd),color='RED')
+                print_stdout("***************END******************",color='RED')
+                list_of_files = glob.glob(os.path.dirname(cc.curfile) + "/" + '*.sliced') # * means all if need specific format then *.csv
+                latest_file = max(list_of_files, key=os.path.getctime)
+                
+                shutil.copyfile(latest_file, str(os.path.dirname(cc.curfile) + "/" + Path(latest_file).stem) + ".bc")
+                file_name_use = str(os.path.dirname(cc.curfile) + "/" + Path(latest_file).stem) + ".bc"
+
+
             except SymbioticException:
             # not fatal, continue working
                 dbg('Failed running slicer in replay')
-            
-
-
-        #self.get_cv_from_klee(str(params))
 
         print_stdout('INFO: Replaying error path', color='WHITE')
         restart_counting_time()
 
-        verifier = SymbioticVerifier(bitcode, self.sources,
-                                     tool, self.options,
-                                     self.env, params)
+        #verifier = SymbioticVerifier(bitcode, self.sources,
+        #                             tool, self.options,
+        #                             self.env, params)
+        verifier = SymbioticVerifier(file_name_use,self.sources, 
+                                    tool, self.options, 
+                                    self.env, params)
         res, _ = verifier.run()
 
         print_elapsed_time('INFO: Replaying error path time', color='WHITE')
